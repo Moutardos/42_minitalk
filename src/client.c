@@ -6,49 +6,52 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:34:10 by lcozdenm          #+#    #+#             */
-/*   Updated: 2022/12/20 01:48:22 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2022/12/21 18:57:00 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-t_state	is_over = WAITING;
+volatile sig_atomic_t start = 0;
 
-static void handler(int sig)
+static void handler_start(int sig)
 {
-	if (!is_over)
-		is_over = OVER;
-
+	if (!start)
+		start = 1;
 }
 
-void	send_signals(pid_t spid, char *str, struct sigaction sa)
+void	send_signals(pid_t spid, char *msg)
 {
+	unsigned int	i;
 
-	while(is_over != OVER)
+	pause();
+	while (*msg)
 	{
-		wait(NULL);
-		usleep(1000);
-		if (message->status == WAITING && is_over == WAITING)
+		i = 0;
+		while (i < 8)
 		{
-			message->str = str;
-			kill(spid, SIGCLIENT);
+			if (start)
+			if (*msg >> i)
+				kill(spid, SIGUSR1);
+			else
+				kill(spid, SIGUSR2);
+			i++;
 		}
+		msg++;
 	}
 }
 int main(int ac, char const **av)
 {
 	struct sigaction	sa;
 	pid_t				spid;
-
-	if (message == NULL)
+	
+	if (ac != 3 || av[2] == NULL)
 		return (0);
-	if (ac != 3)
-		return (0);
-	spid = av[1];
-	sa.sa_handler = handler;
+	spid = ft_atoi(av[1]);
+	sa.sa_handler = handler_start;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART;
-	sigaction(SIGSERVER, &sa, NULL);
-	send_signals(spid, av[2], sa);
+	sigaction(SIGUSR1, &sa, NULL);
+	send_signals(spid, av[2]);
 	return (0);
 }

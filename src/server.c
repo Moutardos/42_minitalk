@@ -6,63 +6,50 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:33:56 by lcozdenm          #+#    #+#             */
-/*   Updated: 2022/12/20 01:25:47 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2022/12/21 19:10:52 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-t_message *message;
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
 
-static void	handler(int sig)
-{
-	if (message->status == WAITING)
-		message->status = WORKING;
-}
+// -1 : waiting for input
+//  0 : getting client pid
+//  1 : working
+//
 
-static void handler_quit(int sig)
-{
-	message->status = OVER;
-}
+volatile sig_atomic_t is_working = -1;
 
-void setup_signals(struct sigaction *sa, struct sigaction *sa_quit)
+void handler_letter(int sig)
 {
-	sa->sa_handler = handler;
-	sigemptyset(&sa->sa_mask);
-	sa->sa_flags = SA_RESTART;
-	sigaction(SIGCLIENT, sa, NULL);
-	sa_quit->sa_handler = handler_quit;
-	sigemptyset(&sa_quit->sa_mask);
-	sa_quit->sa_flags = SA_RESTART;
-	sigaction(SIGQUIT, sa_quit, NULL);
-	sigaction(SIGINT, sa_quit, NULL);
-	sigaction(SIGTERM, sa_quit, NULL);
-}
-void get_signal(void)
-{
-	while(message->status != OVER)
+	if (is_working == -1)
+		is_working = 0;
+	else
 	{
-		pause();
-		if (message->status == WORKING)
-		{
-			ft_printf("%s", message->str);
-			kill(message->cpid, SIGCLIENT);
-			message->status = WAITING;
-		}
+
 	}
 }
-int main(void)
-{
-	struct sigaction	sa;
-	struct sigaction	sa_quit;
 
-	message = malloc(sizeof(*message));
-	if (message == NULL)
-		return (NULL);
-	message->str = NULL;
-	message->status = WAITING;
-	ft_printf("%d", getpid());
-	setup_signals(&sa, &sa_quit);
-	get_signal();
-	return (0);
+void
+int main()
+{
+    printf("Server started with PID %d\n", getpid());
+
+    // Set up signal handler for incoming signals
+    struct sigaction action;
+    sigemptyset(&action.sa_mask);
+    action.sa_handler = handle_signal;
+    sigaction(SIGUSR1, &action, NULL);
+
+    while (1)
+    {
+        pause(); // Wait for signal
+    }
+
+    return 0;
 }
+
