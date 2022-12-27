@@ -6,51 +6,75 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:34:10 by lcozdenm          #+#    #+#             */
-/*   Updated: 2022/12/24 01:56:09 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2022/12/27 23:04:46 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
  
-volatile sig_atomic_t start = NO_SIG;
+volatile sig_atomic_t start = INACTIVE;
 
-static void handler_got(int sig)
+static void handler_client(int sig)
 {
-	if (start == NO_SIG)
-		start = GOT;
-	write(1,"go", 2);
+	if (sig == SIG_GOT)
+	{
+		if (start == INACTIVE)
+			start = SENDING;
+		else if (start == SENDING)
+			start = GOT;
+	}
+	else if (sig == SIG_DONE)
+	{
+		start = DONE;
+	}
 }
 
-int	send_signals(pid_t spid,const char *msg)
+
+
+int	send_msg(pid_t spid,const char *msg)
 {
 	unsigned int	i;
+
 	while (*msg)
 	{
 		printf("treating %c\n",*msg);
-		kill(spid, SIG_0);
 		i = 0;
 		while (i < 8)
 		{
-			usleep(200);
-			if (start == NO_SIG)
-			{
-				printf("fail");
-				return (0);
-			}
-			start = NO_SIG;	
+			start = SENDING;
 			if (*msg >> i & 1)
 				kill(spid, SIG_1);
 			else
 				kill(spid, SIG_0);
 			i++;
-			usleep(200);
+			pause();
 			printf("%u", i);
 		}
 		msg++;
 	}
-	if (*msg)
-		return (0);
+	i = 0;
+	while (i < 8)
+	{
+		start = SENDING;
+		kill(spid, SIG_0);
+		pause();
+		i++;
+	}
 	return (1);
+}
+
+int	send_len(pid_t spid, const char *msg)
+{
+	while (start == INACTIVE)
+		pause();
+	while (*msg)
+	{
+		kill(spid, SIG_1);
+		msg++;
+		start = SENDING;
+		pause();	
+	}
+	kill(spid, SIG_0);
 }
 int main(int ac, char const **av)
 {
@@ -60,11 +84,20 @@ int main(int ac, char const **av)
 	if (ac != 3 || av[2] == NULL)
 		return (0);
 	spid = ft_atoi(av[1]);
-	sa.sa_handler = handler_got;
+	sa.sa_handler = handler_client;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART;
 	sigaction(SIG_GOT, &sa, NULL);
-	printf("let's go : %s   ", av[2]);
-	send_signals(spid, av[2]);
+	sigaction(SIG_DONE, &sa, NULL);
+	kill(spid, SIG_1);
+	send_len(spid, av[2]);
+	while (start != DONE)
+		pause();
+	send_msg(spid, av[2]);
+	pause();
+	if (start == END)
+		printf("DONE");
+	else
+		printf("FAIL");
 	return (0);
 }
