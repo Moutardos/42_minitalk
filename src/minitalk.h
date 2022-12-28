@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:35:12 by lcozdenm          #+#    #+#             */
-/*   Updated: 2022/12/27 20:31:43 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2022/12/28 13:39:04 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ typedef enum e_state
     SENDING,
     GOT,
     DONE,
-    END
 } t_state;
 
 # define WAIT_TIME 200

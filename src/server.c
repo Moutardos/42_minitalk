@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:33:56 by lcozdenm          #+#    #+#             */
-/*   Updated: 2022/12/27 21:36:23 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2022/12/28 15:17:20 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 #include <unistd.h>
 #include <signal.h> 
 
-t_msginfo   *msginfo = NULL;
+volatile t_msginfo   *msginfo = NULL;
 
 void handler_letter(int sig, siginfo_t * info, void * context)
 {
@@ -33,24 +33,25 @@ void handler_letter(int sig, siginfo_t * info, void * context)
     {
 		get_len(sig);
     }
-    else
+    else if (!msginfo->msg_done)
     {
         if (sig == SIG_1)
             bit += size;
-        size *= 2;
-    }
-    if (size > 128)
-    {
-        msginfo->msg[pos] = bit;
-        pos++;
-		if (bit == 0)
+        size *= 2; 
+        if (size > 128)
         {
-            pos = 0;
-			msginfo->msg_done = 1;
+            msginfo->msg[pos] = bit;
+            pos++;
+		    if (bit == 0)
+            {
+                pos = 0;
+			    msginfo->msg_done = 1;
+            }
+            size = 1;
+            bit = 0;
         }
-        size = 1;
-        bit = 0;
     }
+    usleep(1);
 }
 
 void get_len(int sig)
@@ -77,7 +78,6 @@ t_msginfo   *init_msginfo(t_msginfo *msginfo)
         free(newinfo->msg);
     newinfo->msg = NULL;
     newinfo->msg_done = 0;
-    newinfo->client_pid = 0;
     return (newinfo);
 }
 
@@ -89,7 +89,8 @@ int treat_message(void)
     while (!msginfo->len_done)
 	{
         pause();
-        kill(msginfo->client_pid, SIG_GOT);
+        if (!msginfo->len_done)
+            kill(msginfo->client_pid, SIG_GOT);
 	}
 	if (msginfo->len == 0)
 		return (-1);
@@ -100,10 +101,9 @@ int treat_message(void)
 	while(!msginfo->msg_done)
     {
         pause();
-        kill(msginfo->client_pid, SIG_GOT);
+        if (!msginfo->msg_done)
+            kill(msginfo->client_pid, SIG_GOT);
     }
-    kill(msginfo->client_pid, SIG_GOT);
-    kill(msginfo->client_pid, SIG_DONE);
     ft_printf(msginfo->msg);
 	return (0);
 
@@ -121,16 +121,18 @@ int main(void)
     sigaction(SIG_1, &action, NULL);
     sigaction(SIG_0, &action, NULL);
 	msg_err = 0;
-    msginfo = init_msginfo(msginfo);
-    if (!msginfo)
-        return (0);
-    ft_printf("Server started with PID %d\n", getpid());
+    ft_printf("Server started with PID %d", getpid());
     while (!msg_err)
     {
+        msginfo = init_msginfo(msginfo);
+        if (!msginfo)
+            break;
+        ft_printf("\nWaiting for message...\n");
+        if (msginfo->client_pid)
+            kill(msginfo->client_pid, SIG_DONE);
+        msginfo->client_pid = 0;
 		pause();
 		msg_err = treat_message();
-        if (init_msginfo(msginfo) == NULL)
-            break;
     }
 	if (msginfo)
 	{
@@ -138,6 +140,7 @@ int main(void)
 			free(msginfo->msg);
 		free(msginfo);
 	}
+    kill(msginfo->client_pid, SIG_DONE);
     return 0;
 }
 

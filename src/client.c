@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:34:10 by lcozdenm          #+#    #+#             */
-/*   Updated: 2022/12/27 23:04:46 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2022/12/28 15:15:30 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ static void handler_client(int sig)
 	{
 		start = DONE;
 	}
+	usleep(1);
 }
 
 
@@ -37,7 +38,6 @@ int	send_msg(pid_t spid,const char *msg)
 
 	while (*msg)
 	{
-		printf("treating %c\n",*msg);
 		i = 0;
 		while (i < 8)
 		{
@@ -48,7 +48,6 @@ int	send_msg(pid_t spid,const char *msg)
 				kill(spid, SIG_0);
 			i++;
 			pause();
-			printf("%u", i);
 		}
 		msg++;
 	}
@@ -69,12 +68,11 @@ int	send_len(pid_t spid, const char *msg)
 		pause();
 	while (*msg)
 	{
-		kill(spid, SIG_1);
 		msg++;
 		start = SENDING;
+		kill(spid, SIG_1);
 		pause();	
 	}
-	kill(spid, SIG_0);
 }
 int main(int ac, char const **av)
 {
@@ -91,11 +89,11 @@ int main(int ac, char const **av)
 	sigaction(SIG_DONE, &sa, NULL);
 	kill(spid, SIG_1);
 	send_len(spid, av[2]);
+	kill(spid, SIG_0);
 	while (start != DONE)
-		pause();
+		usleep(WAIT_TIME);
 	send_msg(spid, av[2]);
-	pause();
-	if (start == END)
+	if (start == DONE)
 		printf("DONE");
 	else
 		printf("FAIL");
