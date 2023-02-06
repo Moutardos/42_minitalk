@@ -6,33 +6,36 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:34:10 by lcozdenm          #+#    #+#             */
-/*   Updated: 2022/12/28 15:15:30 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/06 14:58:03 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
- 
-volatile sig_atomic_t start = INACTIVE;
 
-static void handler_client(int sig)
+volatile sig_atomic_t	g_start = INACTIVE;
+
+static void	handler_client(int sig)
 {
 	if (sig == SIG_GOT)
 	{
-		if (start == INACTIVE)
-			start = SENDING;
-		else if (start == SENDING)
-			start = GOT;
+		if (g_start == INACTIVE)
+			g_start = SENDING;
+		else if (g_start == SENDING)
+			g_start = GOT;
 	}
 	else if (sig == SIG_DONE)
 	{
-		start = DONE;
+		g_start = DONE;
 	}
-	usleep(1);
 }
 
+void	wait_sig(void)
+{
+	while (g_start == SENDING)
+		;
+}
 
-
-int	send_msg(pid_t spid,const char *msg)
+void	send_msg(pid_t spid, const char *msg)
 {
 	unsigned int	i;
 
@@ -41,44 +44,47 @@ int	send_msg(pid_t spid,const char *msg)
 		i = 0;
 		while (i < 8)
 		{
-			start = SENDING;
+			g_start = SENDING;
 			if (*msg >> i & 1)
 				kill(spid, SIG_1);
 			else
 				kill(spid, SIG_0);
 			i++;
-			pause();
+			wait_sig();
 		}
 		msg++;
 	}
 	i = 0;
-	while (i < 8)
+	while (i++ < 8)
 	{
-		start = SENDING;
+		g_start = SENDING;
 		kill(spid, SIG_0);
-		pause();
-		i++;
+		wait_sig();
 	}
-	return (1);
 }
 
 int	send_len(pid_t spid, const char *msg)
 {
-	while (start == INACTIVE)
-		pause();
+	while (g_start == INACTIVE)
+		;
+	if (!*msg)
+		return (1);
 	while (*msg)
 	{
 		msg++;
-		start = SENDING;
+		g_start = SENDING;
 		kill(spid, SIG_1);
-		pause();	
+		wait_sig();
 	}
+	return (0);
 }
-int main(int ac, char const **av)
+
+int	main(int ac, char const **av)
 {
 	struct sigaction	sa;
 	pid_t				spid;
-	
+	int					empty;
+
 	if (ac != 3 || av[2] == NULL)
 		return (0);
 	spid = ft_atoi(av[1]);
@@ -88,14 +94,16 @@ int main(int ac, char const **av)
 	sigaction(SIG_GOT, &sa, NULL);
 	sigaction(SIG_DONE, &sa, NULL);
 	kill(spid, SIG_1);
-	send_len(spid, av[2]);
+	empty = send_len(spid, av[2]);
 	kill(spid, SIG_0);
-	while (start != DONE)
-		usleep(WAIT_TIME);
+	if (empty)
+		return (0);
+	while (g_start != DONE)
+		;
 	send_msg(spid, av[2]);
-	if (start == DONE)
-		printf("DONE");
+	if (g_start == DONE)
+		ft_printf("DONE");
 	else
-		printf("FAIL");
+		ft_printf("FAIL");
 	return (0);
 }
