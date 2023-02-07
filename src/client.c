@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:34:10 by lcozdenm          #+#    #+#             */
-/*   Updated: 2023/02/06 14:58:03 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/07 20:04:25 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 volatile sig_atomic_t	g_start = INACTIVE;
 
-static void	handler_client(int sig)
+void	handler_client(int sig)
 {
 	if (sig == SIG_GOT)
 	{
