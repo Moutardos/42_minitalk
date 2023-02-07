@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:33:56 by lcozdenm          #+#    #+#             */
-/*   Updated: 2023/02/06 15:28:07 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/07 19:12:35 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,96 +17,89 @@
 #include <unistd.h>
 #include <signal.h> 
 
-volatile t_msginfo	msginfo;
+volatile t_msginfo	g_msginfo;
 
-void handler_letter(int sig, siginfo_t * info, void * context)
+void	handler_letter(int sig, siginfo_t *info, void *c)
 {
-	static unsigned	int pos = 0;
-	static unsigned	int bit = 0;
-	static unsigned	int size = 1;
-	if (!msginfo.client_pid)
-	{
-		msginfo.client_pid = info->si_pid;
-		msginfo.sig_got = 1;
-		return ;
-	}
-	if (!msginfo.len_done)
-	{
-		get_len(sig);
-	}
-	else if (!msginfo.msg_done)
+	static unsigned int	pos = 0;
+	static unsigned int	bit = 0;
+	static unsigned int	size = 1;
+
+	if (!g_msginfo.client_pid)
+		g_msginfo.client_pid = info->si_pid;
+	else if (!g_msginfo.len_done)
+		get_len(sig, c);
+	else if (!g_msginfo.msg_done)
 	{
 		if (sig == SIG_1)
 			bit += size;
-		size *= 2; 
+		size *= 2;
 		if (size > 128)
 		{
-			msginfo.msg[pos] = bit;
-			pos++;
+			g_msginfo.msg[pos++] = bit;
 			if (bit == 0)
-			{
 				pos = 0;
-				msginfo.msg_done = 1;
-			}
+			if (pos == 0)
+				g_msginfo.msg_done = 1;
 			size = 1;
 			bit = 0;
 		}
 	}
-	msginfo.sig_got = 1;
+	g_msginfo.sig_got = 1;
 }
 
-void get_len(int sig)
+void	get_len(int sig, void *c)
 {
+	(void) c;
 	if (sig == SIG_1)
-		msginfo.len++;
+		g_msginfo.len++;
 	else if (sig == SIG_0)
-		msginfo.len_done = 1;
+		g_msginfo.len_done = 1;
 }
 
-void    init_msginfo()
+void	init_g_msginfo(void)
 {
-	msginfo.len_done = 0;
-	msginfo.len = 0;
-	if (msginfo.msg)
-		free(msginfo.msg);
-	msginfo.msg = NULL;
-	msginfo.msg_done = 0;
-	msginfo.sig_got = 0;
+	g_msginfo.len_done = 0;
+	g_msginfo.len = 0;
+	if (g_msginfo.msg)
+		free(g_msginfo.msg);
+	g_msginfo.msg = NULL;
+	g_msginfo.msg_done = 0;
+	g_msginfo.sig_got = 0;
+	ft_printf("\nWaiting for message...\n");
 }
 
-int treat_message(void)
+int	treat_message(void)
 {
-	kill(msginfo.client_pid, SIG_GOT);
-	while (!msginfo.len_done)
+	kill(g_msginfo.client_pid, SIG_GOT);
+	while (!g_msginfo.len_done)
 	{
-		while(!msginfo.sig_got)
+		while (!g_msginfo.sig_got)
 			;
-		msginfo.sig_got = 0;
-		if (!msginfo.len_done)
-			kill(msginfo.client_pid, SIG_GOT);
+		g_msginfo.sig_got = 0;
+		if (!g_msginfo.len_done)
+			kill(g_msginfo.client_pid, SIG_GOT);
 	}
-	if (msginfo.len == 0)
+	if (g_msginfo.len == 0)
 		return (1);
-	msginfo.msg = malloc(msginfo.len + 1);
-	if (msginfo.msg == NULL)
+	g_msginfo.msg = malloc(g_msginfo.len + 1);
+	if (g_msginfo.msg == NULL)
 		return (0);
-	kill(msginfo.client_pid, SIG_DONE);
-	while(!msginfo.msg_done)
+	kill(g_msginfo.client_pid, SIG_DONE);
+	while (!g_msginfo.msg_done)
 	{
-		while(!msginfo.sig_got)
+		while (!g_msginfo.sig_got)
 			;
-		msginfo.sig_got = 0;
-		if (!msginfo.msg_done)
-			kill(msginfo.client_pid, SIG_GOT);
+		g_msginfo.sig_got = 0;
+		if (!g_msginfo.msg_done)
+			kill(g_msginfo.client_pid, SIG_GOT);
 	}
-	ft_printf(msginfo.msg);
+	ft_printf(g_msginfo.msg);
 	return (0);
-
 }
-int main(void)
-{
 
-	// Set up signal handler for incoming signals
+int	main(void)
+{
 	struct sigaction	action;
 	int					msg_err;
 
@@ -119,19 +112,17 @@ int main(void)
 	ft_printf("Server started with PID %d", getpid());
 	while (!msg_err)
 	{
-		init_msginfo();
-		ft_printf("\nWaiting for message...\n");
-		if (msginfo.client_pid)
-			kill(msginfo.client_pid, SIG_DONE);
-		msginfo.client_pid = 0;
-		while(!msginfo.sig_got)
+		init_g_msginfo();
+		if (g_msginfo.client_pid)
+			kill(g_msginfo.client_pid, SIG_DONE);
+		g_msginfo.client_pid = 0;
+		while (!g_msginfo.sig_got)
 			;
-		msginfo.sig_got = 0;
+		g_msginfo.sig_got = 0;
 		msg_err = treat_message();
 	}
-	if (msginfo.msg)
-		free(msginfo.msg);
-	kill(msginfo.client_pid, SIG_DONE);
-	return 0;
+	if (g_msginfo.msg)
+		free(g_msginfo.msg);
+	kill(g_msginfo.client_pid, SIG_DONE);
+	return (0);
 }
-

@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/17 01:35:07 by lcozdenm          #+#    #+#             */
-/*   Updated: 2022/12/27 19:18:47 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/07 18:26:02 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ void	*ft_memcpy(void *dst, const void *src, size_t n);
 void	*ft_memmove(void *dst, const void *src, size_t len);
 
 /* return 0 if they have the same data, positive number if the
-   first different byte is bigger or else a negative number */
+	first different byte is bigger or else a negative number */
 int		ft_memcmp(const void *s1, const void *s2, size_t n);
 
 /** STR **/
@@ -64,11 +64,11 @@ size_t	ft_strlcpy(char *dst, const char *src, size_t size);
 size_t	ft_strlcat(char *dst, const char *src, size_t size);
 
 /* compare 2 string, return positive if s1 > s2, negative if s2 > s1 
-   else 0 if equal */
+	else 0 if equal */
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
 
 /* locate the string little inside the string big and return where it begins.
-   doesn't search after len character */
+	doesn't search after len character */
 char	*ft_strnstr(const char *big, const char *little, size_t len);
 
 /*return the length of the NUL character terminated string s*/
@@ -160,7 +160,7 @@ void	ft_putendl_fd(char *s, int fd);
 int		ft_putnbr_fd(int n, int fd);
 int		ft_putnbru_fd(unsigned int n, int fd);
 /* print the UNSIGNED number hexadecimal form in the file descriptor,
-   with the nsize and in uppercase or not*/
+	with the nsize and in uppercase or not*/
 int		ft_puthex_fd(size_t n, int fd, unsigned int nsize, int up);
 
 /** CONVERT **/
@@ -200,6 +200,5 @@ void	ft_lstiter(t_list *lst, void (*f)(void *));
 
 t_list	*ft_lstmap(t_list *lst, void *(*f)(void *), void (*del)(void *));
 
-
-int 	ft_printf(const char *s, ...);
+int		ft_printf(const char *s, ...);
 #endif
