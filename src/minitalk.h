@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:35:12 by lcozdenm          #+#    #+#             */
-/*   Updated: 2023/02/07 19:58:09 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/09 12:14:04 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ typedef struct s_msginfo
 	char	*msg;
 	int		msg_done;
 	int		sig_got;
-	pid_t	client_pid;
+	pid_t	cpid;
 
 }	t_msginfo;
 
@@ -40,6 +40,7 @@ typedef enum e_state
 # define SIG_GOT SIGUSR1
 # define SIG_1 SIGUSR1
 # define SIG_0 SIGUSR2
+# define FAILED -2
 
 /** CLIENT **/
 
@@ -48,7 +49,7 @@ typedef enum e_state
 	"SIG_GOT" can either mean that the previously inactive processus
 	is currrently sending a signal to the server or if it's
 	already in the SENDING state the server got the previous signal
-	"SIG_DONE" is used when the server got the length of the message
+	"SIG_DONE" is used to kill the client
 	or fully printed it*/
 void	handler_client(int sig);
 
@@ -64,9 +65,8 @@ void	send_msg(pid_t spid, const char *msg);
 /* send_len send the length of the message to the target pid by emiting
 	SIG_1 until it met the NULL character.
 	Always wait for the server pid to send a signal to continue.
-	Return 1 if the string is empty and 0 if not.
 */
-int		send_len(pid_t spid, const char *msg);
+void	send_len(pid_t spid, const char *msg);
 
 /** SERVER **/
 /* HANDLER */
@@ -77,16 +77,22 @@ int		send_len(pid_t spid, const char *msg);
 void	handler_letter(int sig, siginfo_t *info, void *c);
 /* Part of the handler that increase the len of the message to malloc it
 	afterward. SIG_1 = continue increasing SIG_0 = stop.
+	Also put the clientpid into info if it's empty.
 	c is useless and is non important, thanks norminette.
 */
-void	get_len(int sig, void *c);
+void	get_len(int sig, siginfo_t *info, void *c);
 
 /* Initalize the global variable to 0 and free the precedent message
 */
-void	init_msginfo(void);
+void	init_g_msginfo(void);
+
+/* Free the current message, send a DONE signal to the client and
+   exit the server
+*/
+void	exit_server(t_msginfo msginfo);
 
 /* Treat the current message by waiting for signals and then allocuting
 	memory to later print it
 */
-int		treat_message(void);
+void	treat_message(void);
 #endif

@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:34:10 by lcozdenm          #+#    #+#             */
-/*   Updated: 2023/02/07 20:04:25 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/09 10:36:17 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,8 @@ void	handler_client(int sig)
 	}
 	else if (sig == SIG_DONE)
 	{
-		g_start = DONE;
+		ft_printf("FAIL");
+		exit(0);
 	}
 }
 
@@ -63,47 +64,52 @@ void	send_msg(pid_t spid, const char *msg)
 	}
 }
 
-int	send_len(pid_t spid, const char *msg)
+void	send_len(pid_t spid, const char *msg)
 {
+	int	len;
+
+	len = 0;
 	while (g_start == INACTIVE)
 		;
-	if (!*msg)
-		return (1);
 	while (*msg)
 	{
 		msg++;
 		g_start = SENDING;
 		kill(spid, SIG_1);
 		wait_sig();
+		len++;
 	}
-	return (0);
+	kill(spid, SIG_0);
+	if (!len)
+	{
+		printf("DONE");
+		exit(0);
+	}
 }
 
 int	main(int ac, char const **av)
 {
 	struct sigaction	sa;
 	pid_t				spid;
-	int					empty;
 
-	if (ac != 3 || av[2] == NULL)
+	if ((ac < 2 || ac > 3) || av[2] == NULL)
 		return (0);
 	spid = ft_atoi(av[1]);
+	if (ac == 2)
+		kill(spid, SIG_0);
 	sa.sa_handler = handler_client;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART;
 	sigaction(SIG_GOT, &sa, NULL);
 	sigaction(SIG_DONE, &sa, NULL);
 	kill(spid, SIG_1);
-	empty = send_len(spid, av[2]);
-	kill(spid, SIG_0);
-	if (empty)
-		return (0);
-	while (g_start != DONE)
+	while (g_start == INACTIVE)
+		;
+	send_len(spid, av[2]);
+	g_start = SENDING;
+	while (g_start != GOT)
 		;
 	send_msg(spid, av[2]);
-	if (g_start == DONE)
-		ft_printf("DONE");
-	else
-		ft_printf("FAIL");
+	printf("DONE");
 	return (0);
 }

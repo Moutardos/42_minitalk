@@ -1,33 +1,38 @@
 CC = cc
 AR= ar
 NAME = libft.a
-SRC = ft_atoi.c ft_calloc.c ft_isalpha.c ft_isdigit.c ft_itoa.c ft_memcmp.c\
-ft_memmove.c ft_putchar_fd.c ft_putnbr_fd.c ft_split.c ft_strdup.c\
-ft_strjoin.c ft_strlcpy.c ft_strmapi.c ft_strnstr.c ft_strtrim.c ft_tolower.c\
-ft_bzero.c ft_isalnum.c ft_isascii.c ft_isprint.c ft_memchr.c ft_memcpy.c\
-ft_memset.c  ft_putendl_fd.c ft_putstr_fd.c ft_strchr.c ft_striteri.c ft_strlcat.c\
-ft_strlen.c  ft_strncmp.c ft_strrchr.c ft_substr.c  ft_toupper.c ft_isspace.c\
-ft_itob.c ft_itohexa.c ft_strlow.c ft_strup.c ft_cinstr.c ft_strmap.c ft_striter.c\
-ft_puthex_fd.c ft_putnbru_fd.c ft_pow.c ft_printf/ft_printf.c ft_printf/convert.c
-OBJ = $(SRC:.c=.o)
-BONUS = ft_lstnew.c ft_lstdelone.c ft_lstclear.c ft_lstadd_front.c ft_lstadd_back.c\
-ft_lstmap.c ft_lstiter.c ft_lstlast.c ft_lstsize.c
-BONUS_OBJ = $(BONUS:.c=.o)
+ODIR = obj
+_OBJS = ft_atoi.o ft_calloc.o ft_isalpha.o ft_isdigit.o ft_itoa.o ft_memcmp.o\
+ft_memmove.o ft_putchar_fd.o ft_putnbr_fd.o ft_split.o ft_strdup.o\
+ft_strjoin.o ft_strlcpy.o ft_strmapi.o ft_strnstr.o ft_strtrim.o ft_tolower.o\
+ft_bzero.o ft_isalnum.o ft_isascii.o ft_isprint.o ft_memchr.o ft_memcpy.o\
+ft_memset.o  ft_putendl_fd.o ft_putstr_fd.o ft_strchr.o ft_striteri.o ft_strlcat.o\
+ft_strlen.o  ft_strncmp.o ft_strrchr.o ft_substr.o  ft_toupper.o ft_isspace.o\
+ft_itob.o ft_itohexa.o ft_strlow.o ft_strup.o ft_cinstr.o ft_strmap.o ft_striter.o\
+ft_puthex_fd.o ft_putnbru_fd.o ft_pow.o ft_printf/ft_printf.o ft_printf/convert.o
+_OBJS_BONUS = ft_lstnew.o ft_lstdelone.o ft_lstclear.o ft_lstadd_front.o ft_lstadd_back.o\
+ft_lstmap.o ft_lstiter.o ft_lstlast.o ft_lstsize.o
+OBJS = $(patsubst %, $(ODIR)/%, $(_OBJS))
+OBJS_BONUS = $(patsubst %, $(ODIR)/%, $(_OBJS_BONUS))
 RM = rm -f
 LIBFLAGS = -rc
 CFLAGS = -Wall -Wextra -Werror -o
 
 all: $(NAME)
 
-%.o : %.c
-	$(CC) $(CFLAGS) $@ -c $<
+$(ODIR):
+	mkdir -p $(ODIR)
+	mkdir -p $(ODIR)/ft_printf
 
-$(NAME) : $(OBJ)
-	$(AR) $(LIBFLAGS) $(NAME) $(OBJ)
+$(ODIR)/%.o : %.c | $(ODIR)
+	$(CC) $(CFLAGS)  $@ -c $<
+
+$(NAME) : $(OBJS)
+	$(AR) $(LIBFLAGS) $(NAME) $(OBJS)
+
 clean:
-	$(RM) $(OBJ)
-	$(RM) $(BONUS_OBJ)
-	
+	$(RM) -R $(ODIR)
+
 fclean : clean
 	$(RM) $(NAME)
 	$(RM) test
@@ -35,6 +40,6 @@ fclean : clean
 re: fclean all
 
 bonus: $(BONUS_OBJ)
-	$(AR) $(LIBFLAGS) $(NAME) $(BONUS_OBJ)
+	$(AR) $(LIBFLAGS) $(NAME) $(OBJS_BONUS)
 
 .PHONY: all clean fclean re test bonus so
