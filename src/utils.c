@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/09 09:53:02 by lcozdenm          #+#    #+#             */
-/*   Updated: 2023/02/10 17:18:41 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/10 17:27:39 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ pid_t	setup_client(int ac, char const **av, void (*handler)(int))
 		return (0);
 	spid = ft_atoi(av[1]);
 	if (spid <= 0)
-		ft_printf("Nice try !\n");
+		return (0);
 	if (ac == 2)
 	{
 		kill(spid, SIG_0);
