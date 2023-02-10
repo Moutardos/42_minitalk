@@ -6,22 +6,22 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:34:10 by lcozdenm          #+#    #+#             */
-/*   Updated: 2023/02/09 10:36:17 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/10 14:51:57 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-volatile sig_atomic_t	g_start = INACTIVE;
+volatile sig_atomic_t	g_state = INACTIVE;
 
 void	handler_client(int sig)
 {
 	if (sig == SIG_GOT)
 	{
-		if (g_start == INACTIVE)
-			g_start = SENDING;
-		else if (g_start == SENDING)
-			g_start = GOT;
+		if (g_state == INACTIVE)
+			g_state = SENDING;
+		else if (g_state == SENDING)
+			g_state = GOT;
 	}
 	else if (sig == SIG_DONE)
 	{
@@ -32,7 +32,7 @@ void	handler_client(int sig)
 
 void	wait_sig(void)
 {
-	while (g_start == SENDING)
+	while (g_state == SENDING)
 		;
 }
 
@@ -45,7 +45,7 @@ void	send_msg(pid_t spid, const char *msg)
 		i = 0;
 		while (i < 8)
 		{
-			g_start = SENDING;
+			g_state = SENDING;
 			if (*msg >> i & 1)
 				kill(spid, SIG_1);
 			else
@@ -58,7 +58,7 @@ void	send_msg(pid_t spid, const char *msg)
 	i = 0;
 	while (i++ < 8)
 	{
-		g_start = SENDING;
+		g_state = SENDING;
 		kill(spid, SIG_0);
 		wait_sig();
 	}
@@ -69,12 +69,12 @@ void	send_len(pid_t spid, const char *msg)
 	int	len;
 
 	len = 0;
-	while (g_start == INACTIVE)
+	while (g_state == INACTIVE)
 		;
 	while (*msg)
 	{
 		msg++;
-		g_start = SENDING;
+		g_state = SENDING;
 		kill(spid, SIG_1);
 		wait_sig();
 		len++;
@@ -82,34 +82,25 @@ void	send_len(pid_t spid, const char *msg)
 	kill(spid, SIG_0);
 	if (!len)
 	{
-		printf("DONE");
+		ft_printf("DONE");
 		exit(0);
 	}
 }
 
 int	main(int ac, char const **av)
 {
-	struct sigaction	sa;
 	pid_t				spid;
 
-	if ((ac < 2 || ac > 3) || av[2] == NULL)
+	spid = setup_client(ac, av, handler_client);
+	if (!spid)
 		return (0);
-	spid = ft_atoi(av[1]);
-	if (ac == 2)
-		kill(spid, SIG_0);
-	sa.sa_handler = handler_client;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	sigaction(SIG_GOT, &sa, NULL);
-	sigaction(SIG_DONE, &sa, NULL);
-	kill(spid, SIG_1);
-	while (g_start == INACTIVE)
-		;
+	if (g_state == INACTIVE)
+		ft_printf("Couldn't connect to server pid: %d\n", av[2]);
 	send_len(spid, av[2]);
-	g_start = SENDING;
-	while (g_start != GOT)
+	g_state = SENDING;
+	while (g_state != GOT)
 		;
 	send_msg(spid, av[2]);
-	printf("DONE");
+	ft_printf("DONE");
 	return (0);
 }

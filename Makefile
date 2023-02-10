@@ -8,7 +8,7 @@ CFLAGS = -Wall -Wextra -Werror
 LIBFT = libft/libft.a
 _OBJS_SERV = server.o utils.o
 OBJS_SERV = $(patsubst %,$(ODIR)/%,$(_OBJS_SERV))
-_OBJS_CLIENT = client.o
+_OBJS_CLIENT = client.o utils.o
 OBJS_CLIENT = $(patsubst %,$(ODIR)/%,$(_OBJS_CLIENT))
 
 all: $(LIBFT) $(CLIENT) $(SERVER)
@@ -29,7 +29,7 @@ $(SERVER): $(OBJS_SERV) | $(BDIR)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBFT)
 
 $(CLIENT): $(OBJS_CLIENT) | $(BDIR)
-	$(CC) $(CFLAGS) -o $@ $< $(LIBFT)
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBFT)
 
 
 clean:

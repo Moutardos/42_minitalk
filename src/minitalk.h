@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:35:12 by lcozdenm          #+#    #+#             */
-/*   Updated: 2023/02/09 12:14:04 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/10 14:51:17 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,12 @@ typedef enum e_state
 	"SIG_DONE" is used to kill the client
 	or fully printed it*/
 void	handler_client(int sig);
+
+/* Set up the client by checking the arguments are correct
+   and returning the server pid.
+   If the arguments are incorrect, it will return 0
+*/
+pid_t	setup_client(int ac, char const **av, void (*handler)(int));
 
 /* Halt the curren tprocesssus until the server send a signal to it*/
 void	wait_sig(void);
