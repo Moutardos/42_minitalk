@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:34:10 by lcozdenm          #+#    #+#             */
-/*   Updated: 2023/02/10 14:51:57 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/13 11:19:07 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,8 +69,6 @@ void	send_len(pid_t spid, const char *msg)
 	int	len;
 
 	len = 0;
-	while (g_state == INACTIVE)
-		;
 	while (*msg)
 	{
 		msg++;
@@ -95,7 +93,10 @@ int	main(int ac, char const **av)
 	if (!spid)
 		return (0);
 	if (g_state == INACTIVE)
-		ft_printf("Couldn't connect to server pid: %d\n", av[2]);
+	{
+		ft_printf("Couldn't connect to server pid: %d\n", spid);
+		return (0);
+	}
 	send_len(spid, av[2]);
 	g_state = SENDING;
 	while (g_state != GOT)

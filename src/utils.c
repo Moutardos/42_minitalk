@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/09 09:53:02 by lcozdenm          #+#    #+#             */
-/*   Updated: 2023/02/10 17:27:39 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/13 11:01:00 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ pid_t	setup_client(int ac, char const **av, void (*handler)(int))
 	if (ac == 2)
 	{
 		kill(spid, SIG_0);
-		usleep(100);
+		usleep(WAIT_TIME);
 		return (0);
 	}
 	sa.sa_handler = handler;
@@ -45,6 +45,6 @@ pid_t	setup_client(int ac, char const **av, void (*handler)(int))
 	sigaction(SIG_GOT, &sa, NULL);
 	sigaction(SIG_DONE, &sa, NULL);
 	kill(spid, SIG_1);
-	usleep(100);
+	usleep(WAIT_TIME);
 	return (spid);
 }

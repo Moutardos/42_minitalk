@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:33:56 by lcozdenm          #+#    #+#             */
-/*   Updated: 2023/02/10 17:21:06 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/13 11:14:55 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,6 +104,7 @@ void	init_g_msginfo(void)
 	g_msginfo.msg = NULL;
 	g_msginfo.msg_done = 0;
 	g_msginfo.sig_got = 0;
+	g_msginfo.cpid = 0;
 	ft_printf("\nWaiting for message...\n");
 }
 
@@ -122,13 +123,12 @@ int	main(void)
 	while (1)
 	{
 		init_g_msginfo();
-		if (g_msginfo.cpid)
-			kill(g_msginfo.cpid, SIG_GOT);
-		g_msginfo.cpid = 0;
 		while (!g_msginfo.sig_got)
 			;
 		g_msginfo.sig_got = 0;
 		treat_message();
+		if (g_msginfo.cpid)
+			kill(g_msginfo.cpid, SIG_GOT);
 	}
 	return (0);
 }

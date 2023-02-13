@@ -6,7 +6,7 @@
 /*   By: lcozdenm <lcozdenm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/19 22:35:12 by lcozdenm          #+#    #+#             */
-/*   Updated: 2023/02/10 14:51:17 by lcozdenm         ###   ########.fr       */
+/*   Updated: 2023/02/13 11:33:31 by lcozdenm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,12 +35,12 @@ typedef enum e_state
 	DONE,
 }	t_state;
 
-# define WAIT_TIME 200
+//Wait for the signal if none were received, for valgrind
+# define WAIT_TIME 10000 
 # define SIG_DONE SIGUSR2
 # define SIG_GOT SIGUSR1
 # define SIG_1 SIGUSR1
 # define SIG_0 SIGUSR2
-# define FAILED -2
 
 /** CLIENT **/
 
